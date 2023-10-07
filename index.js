@@ -35,4 +35,5 @@ function dataToText(list1){
         element.direction+" of you!\n"
     });
     return txt;
+    
 }
