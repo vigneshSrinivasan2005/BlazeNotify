@@ -25,3 +25,15 @@ function start(data){
     console.log(data);
 
 }
+//give data in following way
+//List {{distance, direction},....}
+//direction is a string(24 degrees north)
+function dataToText(list1){
+    txt ="";
+    list.array.forEach(element => {
+        txt+="Hey, watch out there is a possible wildfire "+ element.distance+ " miles and "+
+        element.direction+" of you!\n"
+    });
+    return txt;
+    
+}
