@@ -21,7 +21,36 @@ https.get(url, (resp) => {
 }).on("error", (err) => {
   console.log("Error: " + err.message);
 });
-function start(data){
-    console.log(data);
 
+function start(data){
+  coordinateArr = parseData(data)
+  coordinateArr.forEach(i => {
+    console.log("Latitude: " + i.latitude + ", Longitude: " + i.longitude);
+  })
+}
+
+// Parsing the fire data and storing the latitude and longitude coordinates
+function parseData(data){
+  coordinates = [];
+  nums = 0;
+    
+  // Split the data by line
+  rows = data.split("\n");
+  rows.shift();
+
+  rows.forEach(i => {
+  
+    if(nums<10) {
+  
+      // Splitting each line and inputting an object with a [latitude, longtitude]
+      coordinates[nums] = {
+        latitude: parseFloat(i.split(",")[0]),
+        longitude: parseFloat(i.split(",")[1])             
+      };
+    }
+
+    nums++;
+  })
+
+  return coordinates;
 }
