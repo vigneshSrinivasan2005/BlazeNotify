@@ -60,13 +60,23 @@ function parseData(data){
 //give data in following way
 //List {{distance, direction},....}
 //direction is a string(24 degrees north)
-function dataToText(list1){
-    txt ="";
-    list.array.forEach(element => {
-        txt+="Hey, watch out there is a possible wildfire "+ element.distance+ " miles and "+
-        element.direction+" of you!\n"
-    });
-    return txt;
+function dataToMP3(list1){
+  txt ="";
+  list.array.forEach(element => {
+      txt+="Hey, watch out there is a possible wildfire "+ element.distance+ " miles and "+
+      element.direction+" of you!\n"
+  });
+  var txtomp3 = require("text-to-mp3");
+  var fs = require('fs')
+  txtomp3.getMp3(txt, function(err, binaryStream){
+    if(err){
+      console.log(err);
+      return;
+    }
+    var file = fs.createWriteStream("output.mp3"); // write it down the file
+    file.write(binaryStream);
+    file.end();
+  });
 }
 function sendVoiceMailTwilo(){
   // Download the helper library from https://www.twilio.com/docs/node/install
@@ -157,3 +167,4 @@ pinpointsmsvoice.sendVoiceMessage(params, function(err, data) {
   }
 });
 }
+
