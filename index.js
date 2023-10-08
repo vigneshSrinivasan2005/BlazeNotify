@@ -1,12 +1,16 @@
 
 const fs = require('fs');
 userLocation=[{x:445018.788777979614679, y:371612.68037816172}]
-const geojsonString = fs.readFileSync('file.json', 'utf-8');
+const geojsonString = fs.readFileSync('file.csv', 'utf-8');
 latlong=parseData(geojsonString);
-xyPoints= projectionToWSGS(latLong);
+xyPoints= projectionToWSGS(latlong);
 const turf = require('@turf/turf');
 
-left,right,near = processXY(xyPoints,userLocation[0]);
+temp = processXY(xyPoints,userLocation[0]);
+left=temp.one;
+right=temp.two;
+near=temp.three;
+
 dataToMP3(left,right,near);
 
 // Parsing the fire data and storing the latitude and longitude coordinates
@@ -40,9 +44,9 @@ function parseData(data){
 //direction is a string(24 degrees north)
 function dataToMP3(left,right,near){
   txt ="FIRE HAZARDS:\n"+ 
-        "From left, true bearing "+left.bearing+" degrees, range "+left.distance/1000+"kilometers\n " +
-        "From right, true bearing "+right.bearing+" degrees, range "+right.distance/1000+"kilometers\n " +
-        "Closest at true bearing"+near.bearing+" degrees, range "+near.distance/1000+"kilometers\n";
+        "From left, true bearing "+left.bearing.toFixed(2)+" degrees, range "+ left.distance.toFixed(2)+"kilometers\n " +
+        "From right, true bearing "+right.bearing.toFixed(2)+" degrees, range "+ right.distance.toFixed(2)+"kilometers\n " +
+        "Closest at true bearing"+near.bearing.toFixed(2)+" degrees, range "+ near.distance.toFixed(2)+"kilometers\n";
   const say = require('say')
   var fs = require('fs')
   console.log("here");
@@ -70,16 +74,17 @@ function projectionToWSGS(latLong){
 // [pointdistMin, pointBearing], [bearingMin, bearingPoint], [bearingMax, beairngPoint]
 function processXY(xyPoints, userLocation){
   points = [];
+  tempUser = turf.point([userLocation.x, userLocation.y]);
   pointMinDist = {distance:100000000,bearing:0};
   pointMinBearing = {distance:0,bearing:370}
   pointMaxBearing = {distance:0,bearing:-1};
   
   xyPoints.forEach(i => {
-    var destination = turf.point(i);
+    var destination = turf.point([i.x, i.y]);
 
     points[i] = {
-      distance: turf.distance(userLocation[0], destination, {units: "meters"}),
-      bearing: turf.bearing(userLocation[0], destination)
+      distance: turf.distance(tempUser, destination, {units: 'kilometers'}),
+      bearing: turf.bearing(tempUser, destination)
     };
     
     if(points[i].distance < pointMinDist.distance){
@@ -95,7 +100,7 @@ function processXY(xyPoints, userLocation){
     }
   });
 
-  return (pointMinDist, pointMinBearing, pointMaxBearing);
+  return {one:pointMinDist, two:pointMinBearing, three:pointMaxBearing};
 }
 
 

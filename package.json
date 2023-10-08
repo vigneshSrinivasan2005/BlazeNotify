@@ -9,10 +9,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@turf/turf": "^6.5.0",
     "aws-sdk": "^2.1472.0",
     "node-fetch": "^3.3.2",
+    "proj4": "^2.9.0",
     "say": "^0.16.0",
     "text-to-mp3": "^1.0.4",
+    "turf": "^3.0.14",
     "twilio": "^4.18.1"
   }
 }
