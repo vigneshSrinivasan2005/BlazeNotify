@@ -4,9 +4,40 @@ userLocation=[{x:445018.788777979614679, y:371612.68037816172}]
 const geojsonString = fs.readFileSync('file.json', 'utf-8');
 latlong=parseData(geojsonString);
 xyPoints= projectionToWSGS(latLong);
+const turf = require('@turf/turf');
 //akash will do this right AKBOOSH!
 
-distMin, distMax, bearingMin, bearingMax=processXY(xyPoints,UserLocation[0]);
+// [pointdistMin, pointBearing], [bearingMin, bearingPoint], [bearingMax, beairngPoint]
+function processXY(xyPoints, userLocation){
+  points = [];
+  pointMinDist = {distance:100000000,bearing:0};
+  pointMinBearing = {distance:0,bearing:370}
+  pointMaxBearing = {distance:0,bearing:-1};
+  
+  xyPoints.forEach(i => {
+    var destination = turf.point(i);
+
+    points[i] = {
+      distance: turf.distance(userLocation[0], destination, {units: "meters"}),
+      bearing: turf.bearing(userLocation[0], destination)
+    };
+    
+    if(points[i].distance < pointMinDist.distance){
+      pointMinDist = points[i];
+    }
+
+    if(points[i].bearing < pointMinBearing.bearing){
+      pointMinBearing = points[i];
+    }
+
+    if(points[i].bearing > pointMaxBearing.bearing){
+      pointMaxBearing = points[i];
+    }
+  });
+
+  return (pointMinDist, pointMinBearing, pointMaxBearing);
+}
+
 dataToMP3(distMin, distMax, bearingMin, bearingMax);
 
 
