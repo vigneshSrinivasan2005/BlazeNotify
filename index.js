@@ -1,11 +1,71 @@
-/**/
+
 const fs = require('fs');
 userLocation=[{x:445018.788777979614679, y:371612.68037816172}]
 const geojsonString = fs.readFileSync('file.json', 'utf-8');
 latlong=parseData(geojsonString);
 xyPoints= projectionToWSGS(latLong);
 const turf = require('@turf/turf');
-//akash will do this right AKBOOSH!
+
+left,right,near = processXY(xyPoints,userLocation[0]);
+dataToMP3(left,right,near);
+
+// Parsing the fire data and storing the latitude and longitude coordinates
+function parseData(data){
+  coordinates = [];
+  nums = 0;
+    
+  // Split the data by line
+  rows = data.split("\n");
+  rows.shift();
+
+  rows.forEach(i => {
+  
+    if(nums<10) {
+  
+      // Splitting each line and inputting an object with a [latitude, longtitude]
+      coordinates[nums] = {
+        latitude: parseFloat(i.split(",")[0]),
+        longitude: parseFloat(i.split(",")[1])             
+      };
+    }
+
+    nums++;
+  })
+
+  return coordinates;
+}
+
+//give data in following way
+//List {{distance, direction},....}
+//direction is a string(24 degrees north)
+function dataToMP3(left,right,near){
+  txt ="FIRE HAZARDS:\n"+ 
+        "From left, true bearing "+left.bearing+" degrees, range "+left.distance/1000+"kilometers\n " +
+        "From right, true bearing "+right.bearing+" degrees, range "+right.distance/1000+"kilometers\n " +
+        "Closest at true bearing"+near.bearing+" degrees, range "+near.distance/1000+"kilometers\n";
+  const say = require('say')
+  var fs = require('fs')
+  console.log("here");
+  
+  say.export(txt,'Samantha', 1, "output.wav", (err) => {
+    if (err) {
+      return console.error(err)
+    }
+  
+    console.log('Text has been saved to hal.wav.')
+  });
+}
+
+function projectionToWSGS(latLong){
+  proj4=require("proj4")
+  firstProjection='PROJCS["NAD83 / Washington South (ftUS)",GEOGCS["NAD83",DATUM["North_American_Datum_1983",SPHEROID["GRS 1980",6378137,298.257222101,AUTHORITY["EPSG","7019"]],AUTHORITY["EPSG","6269"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4269"]],UNIT["US survey foot",0.3048006096012192,AUTHORITY["EPSG","9003"]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["standard_parallel_1",47.33333333333334],PARAMETER["standard_parallel_2",45.83333333333334],PARAMETER["latitude_of_origin",45.33333333333334],PARAMETER["central_meridian",-120.5],PARAMETER["false_easting",1640416.667],PARAMETER["false_northing",0],AUTHORITY["EPSG","2286"],AXIS["X",EAST],AXIS["Y",NORTH]]';
+  pointArray=[]
+  latLong.forEach(element => {
+      i=proj4(firstProjection,[element.longitude, element.latitude])
+      pointArray.push({x:i[0],y:i[1]})
+  });
+  return pointArray;
+}
 
 // [pointdistMin, pointBearing], [bearingMin, bearingPoint], [bearingMax, beairngPoint]
 function processXY(xyPoints, userLocation){
@@ -38,64 +98,10 @@ function processXY(xyPoints, userLocation){
   return (pointMinDist, pointMinBearing, pointMaxBearing);
 }
 
-dataToMP3(distMin, distMax, bearingMin, bearingMax);
 
 
-// Parsing the fire data and storing the latitude and longitude coordinates
-function parseData(data){
-  coordinates = [];
-  nums = 0;
-    
-  // Split the data by line
-  rows = data.split("\n");
-  rows.shift();
-
-  rows.forEach(i => {
-  
-    if(nums<10) {
-  
-      // Splitting each line and inputting an object with a [latitude, longtitude]
-      coordinates[nums] = {
-        latitude: parseFloat(i.split(",")[0]),
-        longitude: parseFloat(i.split(",")[1])             
-      };
-    }
-
-    nums++;
-  })
-
-  return coordinates;
-}
-
-//give data in following way
-//List {{distance, direction},....}
-//direction is a string(24 degrees north)
-function dataToMP3(distMax,distMin,bearingMax,bearingMin){
-  txt ="FIRE HAZARDS:\n From Bearing: "+bearingMin+ " Distance: "+distMin+"\n TO Bearing: "+bearingMax+" Distance: "+distMax;  
-  var txtomp3 = require("text-to-mp3");
-  var fs = require('fs')
-  txtomp3.getMp3(txt, function(err, binaryStream){
-    if(err){
-      console.log(err);
-      return;
-    }
-    var file = fs.createWriteStream("output.mp3"); // write it down the file
-    file.write(binaryStream);
-    file.end();
-  });
-}
 
 
-function projectionToWSGS(latLong){
-  proj4=require("proj4")
-  firstProjection='PROJCS["NAD83 / Washington South (ftUS)",GEOGCS["NAD83",DATUM["North_American_Datum_1983",SPHEROID["GRS 1980",6378137,298.257222101,AUTHORITY["EPSG","7019"]],AUTHORITY["EPSG","6269"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4269"]],UNIT["US survey foot",0.3048006096012192,AUTHORITY["EPSG","9003"]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["standard_parallel_1",47.33333333333334],PARAMETER["standard_parallel_2",45.83333333333334],PARAMETER["latitude_of_origin",45.33333333333334],PARAMETER["central_meridian",-120.5],PARAMETER["false_easting",1640416.667],PARAMETER["false_northing",0],AUTHORITY["EPSG","2286"],AXIS["X",EAST],AXIS["Y",NORTH]]';
-  pointArray=[]
-  latLong.forEach(element => {
-      i=proj4(firstProjection,[element.longitude, element.latitude])
-      pointArray.push({x:i[0],y:i[1]})
-  });
-  return pointArray;
-}
 
 
 
@@ -210,9 +216,7 @@ var params = {
     }
   },
   OriginationPhoneNumber: originationNumber,
-  DestinationPhoneNumber: destinationNumber,  
-  
-  
+  DestinationPhoneNumber: destinationNumber,   
 };
 
 //Try to send the message.
