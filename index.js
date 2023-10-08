@@ -4,10 +4,10 @@ userLocation=[{x:445018.788777979614679, y:371612.68037816172}]
 const geojsonString = fs.readFileSync('file.json', 'utf-8');
 latlong=parseData(geojsonString);
 xyPoints= projectionToWSGS(latLong);
-//akash will do this right AKBOOSH!
-left,right,near =processXY(xyPoints,UserLocation[0]);
-dataToMP3(left,right,near);
+const turf = require('@turf/turf');
 
+left,right,near = processXY(xyPoints,userLocation[0]);
+dataToMP3(left,right,near);
 
 // Parsing the fire data and storing the latitude and longitude coordinates
 function parseData(data){
@@ -56,7 +56,6 @@ function dataToMP3(left,right,near){
   });
 }
 
-
 function projectionToWSGS(latLong){
   proj4=require("proj4")
   firstProjection='PROJCS["NAD83 / Washington South (ftUS)",GEOGCS["NAD83",DATUM["North_American_Datum_1983",SPHEROID["GRS 1980",6378137,298.257222101,AUTHORITY["EPSG","7019"]],AUTHORITY["EPSG","6269"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4269"]],UNIT["US survey foot",0.3048006096012192,AUTHORITY["EPSG","9003"]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["standard_parallel_1",47.33333333333334],PARAMETER["standard_parallel_2",45.83333333333334],PARAMETER["latitude_of_origin",45.33333333333334],PARAMETER["central_meridian",-120.5],PARAMETER["false_easting",1640416.667],PARAMETER["false_northing",0],AUTHORITY["EPSG","2286"],AXIS["X",EAST],AXIS["Y",NORTH]]';
@@ -67,6 +66,42 @@ function projectionToWSGS(latLong){
   });
   return pointArray;
 }
+
+// [pointdistMin, pointBearing], [bearingMin, bearingPoint], [bearingMax, beairngPoint]
+function processXY(xyPoints, userLocation){
+  points = [];
+  pointMinDist = {distance:100000000,bearing:0};
+  pointMinBearing = {distance:0,bearing:370}
+  pointMaxBearing = {distance:0,bearing:-1};
+  
+  xyPoints.forEach(i => {
+    var destination = turf.point(i);
+
+    points[i] = {
+      distance: turf.distance(userLocation[0], destination, {units: "meters"}),
+      bearing: turf.bearing(userLocation[0], destination)
+    };
+    
+    if(points[i].distance < pointMinDist.distance){
+      pointMinDist = points[i];
+    }
+
+    if(points[i].bearing < pointMinBearing.bearing){
+      pointMinBearing = points[i];
+    }
+
+    if(points[i].bearing > pointMaxBearing.bearing){
+      pointMaxBearing = points[i];
+    }
+  });
+
+  return (pointMinDist, pointMinBearing, pointMaxBearing);
+}
+
+
+
+
+
 
 
 
@@ -181,9 +216,7 @@ var params = {
     }
   },
   OriginationPhoneNumber: originationNumber,
-  DestinationPhoneNumber: destinationNumber,  
-  
-  
+  DestinationPhoneNumber: destinationNumber,   
 };
 
 //Try to send the message.
