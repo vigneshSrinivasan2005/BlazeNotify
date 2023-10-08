@@ -1,35 +1,14 @@
-const url="https://firms.modaps.eosdis.nasa.gov/api/area/csv/efc81a030842f1f2809a40ade2162752/VIIRS_SNPP_NRT/world/1";
-const https = require('https');
-var AWS = require('aws-sdk');
-var data2={};
-https.get(url, (resp) => {
-  let data = '';
+/**/
+const fs = require('fs');
+userLocation=[{x:445018.788777979614679, y:371612.68037816172}]
+const geojsonString = fs.readFileSync('file.json', 'utf-8');
+latlong=parseData(geojsonString);
+xyPoints= projectionToWSGS(latLong);
+//akash will do this right AKBOOSH!
 
-  // A chunk of data has been received.
-  resp.on('data', (chunk) => {
-    data += chunk;
-    //console.log(chunk);
-  });
+distMin, distMax, bearingMin, bearingMax=processXY(xyPoints,UserLocation[0]);
+dataToMP3(distMin, distMax, bearingMin, bearingMax);
 
-  // The whole response has been received. Print out the result.
-  resp.on('end', () => {
-    console.log(typeof(data));
-    start(data);
-    //console.log(data.JSON);
-
-  });
-
-}).on("error", (err) => {
-  console.log("Error: " + err.message);
-});
-
-function start(data){
-  sendVoiceMailTwilo();
-  /*coordinateArr = parseData(data)
-  coordinateArr.forEach(i => {
-    console.log("Latitude: " + i.latitude + ", Longitude: " + i.longitude);
-  })*/
-}
 
 // Parsing the fire data and storing the latitude and longitude coordinates
 function parseData(data){
@@ -60,12 +39,8 @@ function parseData(data){
 //give data in following way
 //List {{distance, direction},....}
 //direction is a string(24 degrees north)
-function dataToMP3(list1){
-  txt ="";
-  list.array.forEach(element => {
-      txt+="Hey, watch out there is a possible wildfire "+ element.distance+ " miles and "+
-      element.direction+" of you!\n"
-  });
+function dataToMP3(distMax,distMin,bearingMax,bearingMin){
+  txt ="FIRE HAZARDS:\n From Bearing: "+bearingMin+ " Distance: "+distMin+"\n TO Bearing: "+bearingMax+" Distance: "+distMax;  
   var txtomp3 = require("text-to-mp3");
   var fs = require('fs')
   txtomp3.getMp3(txt, function(err, binaryStream){
@@ -78,6 +53,59 @@ function dataToMP3(list1){
     file.end();
   });
 }
+
+
+function projectionToWSGS(latLong){
+  proj4=require("proj4")
+  firstProjection='PROJCS["NAD83 / Washington South (ftUS)",GEOGCS["NAD83",DATUM["North_American_Datum_1983",SPHEROID["GRS 1980",6378137,298.257222101,AUTHORITY["EPSG","7019"]],AUTHORITY["EPSG","6269"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4269"]],UNIT["US survey foot",0.3048006096012192,AUTHORITY["EPSG","9003"]],PROJECTION["Lambert_Conformal_Conic_2SP"],PARAMETER["standard_parallel_1",47.33333333333334],PARAMETER["standard_parallel_2",45.83333333333334],PARAMETER["latitude_of_origin",45.33333333333334],PARAMETER["central_meridian",-120.5],PARAMETER["false_easting",1640416.667],PARAMETER["false_northing",0],AUTHORITY["EPSG","2286"],AXIS["X",EAST],AXIS["Y",NORTH]]';
+  pointArray=[]
+  latLong.forEach(element => {
+      i=proj4(firstProjection,[element.longitude, element.latitude])
+      pointArray.push({x:i[0],y:i[1]})
+  });
+  return pointArray;
+}
+
+
+
+
+
+
+
+
+
+
+//unused functions due to time constraints.
+///
+///
+///
+///
+///
+
+function getRTData(){
+  const url="https://firms.modaps.eosdis.nasa.gov/api/area/csv/efc81a030842f1f2809a40ade2162752/VIIRS_SNPP_NRT/world/1";
+  const https = require('https');
+  var AWS = require('aws-sdk');
+  var data2={};
+  https.get(url, (resp) => {
+    let data = '';
+  
+    // A chunk of data has been received.
+    resp.on('data', (chunk) => {
+      data += chunk;
+      //console.log(chunk);
+    });
+  
+    // The whole response has been received. Print out the result.
+    resp.on('end', () => {
+      return data;
+      //console.log(data.JSON);
+    });
+  }).on("error", (err) => {
+    console.log("Error: " + err.message);
+  });
+}
+
 function sendVoiceMailTwilo(){
   // Download the helper library from https://www.twilio.com/docs/node/install
   // Find your Account SID and Auth Token at twilio.com/console
@@ -167,4 +195,3 @@ pinpointsmsvoice.sendVoiceMessage(params, function(err, data) {
   }
 });
 }
-
