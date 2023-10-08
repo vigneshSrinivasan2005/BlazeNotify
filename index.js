@@ -1,14 +1,11 @@
-/*
+
 const fs = require('fs');
 userLocation=[{x:445018.788777979614679, y:371612.68037816172}]
 const geojsonString = fs.readFileSync('file.json', 'utf-8');
 latlong=parseData(geojsonString);
 xyPoints= projectionToWSGS(latLong);
 //akash will do this right AKBOOSH!
-left,right,near =processXY(xyPoints,UserLocation[0]);*/
-left={bearing:35,distance:1300}
-right={bearing:85,distance:2700}
-near={bearing:65,distance:1100}
+left,right,near =processXY(xyPoints,UserLocation[0]);
 dataToMP3(left,right,near);
 
 
