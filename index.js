@@ -1,11 +1,14 @@
-
+/*
 const fs = require('fs');
 userLocation=[{x:445018.788777979614679, y:371612.68037816172}]
 const geojsonString = fs.readFileSync('file.json', 'utf-8');
 latlong=parseData(geojsonString);
 xyPoints= projectionToWSGS(latLong);
 //akash will do this right AKBOOSH!
-left,right,near =processXY(xyPoints,UserLocation[0]);
+left,right,near =processXY(xyPoints,UserLocation[0]);*/
+left={bearing:35,distance:1300}
+right={bearing:85,distance:2700}
+near={bearing:65,distance:1100}
 dataToMP3(left,right,near);
 
 
@@ -43,16 +46,16 @@ function dataToMP3(left,right,near){
         "From left, true bearing "+left.bearing+" degrees, range "+left.distance/1000+"kilometers\n " +
         "From right, true bearing "+right.bearing+" degrees, range "+right.distance/1000+"kilometers\n " +
         "Closest at true bearing"+near.bearing+" degrees, range "+near.distance/1000+"kilometers\n";
-  var txtomp3 = require("text-to-mp3");
+  const say = require('say')
   var fs = require('fs')
-  txtomp3.getMp3(txt, function(err, binaryStream){
-    if(err){
-      console.log(err);
-      return;
+  console.log("here");
+  
+  say.export(txt,'Samantha', 1, "output.wav", (err) => {
+    if (err) {
+      return console.error(err)
     }
-    var file = fs.createWriteStream("output.mp3"); // write it down the file
-    file.write(binaryStream);
-    file.end();
+  
+    console.log('Text has been saved to hal.wav.')
   });
 }
 
