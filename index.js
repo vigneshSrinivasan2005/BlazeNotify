@@ -1,13 +1,12 @@
-/**/
+
 const fs = require('fs');
 userLocation=[{x:445018.788777979614679, y:371612.68037816172}]
 const geojsonString = fs.readFileSync('file.json', 'utf-8');
 latlong=parseData(geojsonString);
 xyPoints= projectionToWSGS(latLong);
 //akash will do this right AKBOOSH!
-
-distMin, distMax, bearingMin, bearingMax=processXY(xyPoints,UserLocation[0]);
-dataToMP3(distMin, distMax, bearingMin, bearingMax);
+left,right,near =processXY(xyPoints,UserLocation[0]);
+dataToMP3(left,right,near);
 
 
 // Parsing the fire data and storing the latitude and longitude coordinates
@@ -39,8 +38,11 @@ function parseData(data){
 //give data in following way
 //List {{distance, direction},....}
 //direction is a string(24 degrees north)
-function dataToMP3(distMax,distMin,bearingMax,bearingMin){
-  txt ="FIRE HAZARDS:\n From Bearing: "+bearingMin+ " Distance: "+distMin+"\n TO Bearing: "+bearingMax+" Distance: "+distMax;  
+function dataToMP3(left,right,near){
+  txt ="FIRE HAZARDS:\n"+ 
+        "From left, true bearing "+left.bearing+" degrees, range "+left.distance/1000+"kilometers\n " +
+        "From right, true bearing "+right.bearing+" degrees, range "+right.distance/1000+"kilometers\n " +
+        "Closest at true bearing"+near.bearing+" degrees, range "+near.distance/1000+"kilometers\n";
   var txtomp3 = require("text-to-mp3");
   var fs = require('fs')
   txtomp3.getMp3(txt, function(err, binaryStream){
