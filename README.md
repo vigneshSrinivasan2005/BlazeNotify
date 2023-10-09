@@ -1,4 +1,4 @@
-# BlazeNotify
+# LoLa-Lola
 This project sends wildfire notifications/voicemails to users using NASA FIRMS data in Node.js
 
 Project LoLa-LoLa addresses NASA’s Wildfire Management Challenge to provide Hazard warnings at the ‘Edge’ where communications networks are sparse or non-existent. 
